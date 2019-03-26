@@ -124,7 +124,8 @@ def news_crawler (queries, _ago = 30 ):
             
     return date_list, query_list, title_list, summary_list, url_list
     
-    
+
+date, query, title, summary = news_crawler(['test'],7) #test에 대해 검색하는 내용을 현재로부터 7일전까지 받아와서 저장 
     
    
 data = { "date" : date,
