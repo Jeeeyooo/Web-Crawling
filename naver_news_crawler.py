@@ -3,6 +3,16 @@
 # 날짜, 검색어, 뉴스 제목, 뉴스 요약, 뉴스 url들을 각각 list형태로 반환하여,
 # dataFrame 형태로 쉽게 변환한 뒤 csv파일로 저장하는 코드입니다.
 
+from bs4 import BeautifulSoup as bs
+import requests #HTTP 요청을 보내는 모듈 
+import re #정규 표현식 사용하기 위한 모듈
+import sys # 이 sys 모듈을 이용해서 파이썬 라이브러리가 설치되어 있는 디렉터리를 확인할 수 있다.
+import pprint
+import pandas as pd
+
+from time import strftime
+from datetime import datetime, timedelta
+
 
 def news_crawler (queries, _ago = 30 ):
   
