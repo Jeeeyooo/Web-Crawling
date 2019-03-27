@@ -6,8 +6,6 @@
 from bs4 import BeautifulSoup as bs
 import requests #HTTP 요청을 보내는 모듈 
 import re #정규 표현식 사용하기 위한 모듈
-import sys # 이 sys 모듈을 이용해서 파이썬 라이브러리가 설치되어 있는 디렉터리를 확인할 수 있다.
-import pprint
 import pandas as pd
 
 from time import strftime
@@ -26,7 +24,9 @@ def news_crawler (queries, _ago = 30 ):
     # 날짜 리스트 만들기
     dates = []
     fromtos = []
-
+    
+    now_date = datetime.now().date()
+    
     for i in range(0, _ago):
         day = timedelta(days=i)
         _date = (now_date - day).strftime("%Y.%m.%d")
