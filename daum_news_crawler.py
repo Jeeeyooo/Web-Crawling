@@ -26,113 +26,113 @@ def request_soup (url):
     
     return soup
     
-  
-  
- def news_crawler (queries, _ago = 30):
+def news_crawler (queries, _ago = 30):
 
-    
-    # 날짜 리스트 만들기
-    s_dates = []
-    e_dates = []
-    
-    now_date = datetime.now().date()
-    
-    for i in range(0, _ago):
-        day = timedelta(days=i)
-        s_date = (now_date - day).strftime("%Y%m%d") + '0000000'
-        s_dates.append(s_date)
-        e_date = (now_date - day).strftime("%Y%m%d") + '235959'
-        e_dates.append(e_date)
-        #print(s_date + " " *5 + e_date)
-    
-    urls_without_page = []
-    queries_for_mapping = []
-    
-    
-    # url list & 거기에 매칭되는 쿼리 리스트
-    for query in queries:
-        for (s_date, e_date) in zip (s_dates, e_dates):
-            url = 'https://search.daum.net/search?DA=PGD&a=STCF&at=more&cluster=n&dc=STC&ed=' + \
-            e_date + '&https_on=on&p=page&period=d&pg=1&q=' +query+\
-            '&r=1&rc=1&s=NS&sd=&sort=recency&w=news'
-            
-            #print(url.find('page'))
-            #print(query)
-            #print(----*20)
-            urls_without_page.append(url)
-            queries_for_mapping.append(query)
 
-            
-    # 크롤링
-    date_list = []
-    query_list = []
-    summary_list = []
-    url_list = []
-    title_list = []
+# 날짜 리스트 만들기
+s_dates = []
+e_dates = []
+
+now_date = datetime.now().date()
+
+for i in range(0, _ago):
+    day = timedelta(days=i)
+    s_date = (now_date - day).strftime("%Y%m%d") + '000000'
+    s_dates.append(s_date)
+    e_date = (now_date - day).strftime("%Y%m%d") + '235959'
+    e_dates.append(e_date)
+    #print(s_date + " " *5 + e_date)
+
+urls_without_page = []
+queries_for_mapping = []
+
+
+# url list & 거기에 매칭되는 쿼리 리스트
+for query in queries:
+    for (sd, ed) in zip (s_dates, e_dates):
+        url = 'https://search.daum.net/search?DA=PGD&a=STCF&at=more&cluster=n&dc=STC&ed=' + \
+        e_date + '&https_on=on&p=page&period=d&pg=1&q=' +query+\
+        '&r=1&rc=1&s=NS&sd=&sort=recency&w=news'
+
+        url = 'https://search.daum.net/search?w=news&sort=recency&q='\
+            +query\
+            +'&cluster=n&DA=STC&s=NS&a=STCF&dc=STC&pg=1&r=1&p='\
+            +'page'\
+            +'&rc=1&at=more&sd='\
+            + sd\
+            +'&ed='\
+            + ed\
+            + '&period=u'
+
+        urls_without_page.append(url)
+        queries_for_mapping.append(query)
+
+#print(queries_for_mapping)
+
+
+# 크롤링
+date_list = []
+query_list = []
+summary_list = []
+url_list = []
+title_list = []
+
+p_idx = urls_without_page[0].find('page')
+#print(p_idx)
+
+
+
+
+
+for (_url, _date, query) in zip(urls_without_page, s_dates, queries_for_mapping):
+    date = _date[:4] + "-" + _date[4:6] + "-" + _date[6:8]
+    #print(query)
+
+    page = 1
+
+    while True:
+        print("page : ",page)
+
+        url = _url[:p_idx] + str(page) + _url[p_idx+4:]
+
+        print(url)
+        #print("---"*10)
+
+        soup = request_soup(url)
+        #print(soup.prettify())
+
+        div_soup = soup.findAll("div", {"class" : "wrap_tit mg_tit"})
+        span_soup = soup.findAll("span", {"class": "f_nb date"})
+        desc_soup = soup.findAll("p", {"class":"f_eb desc"})
+        end_soup = soup.findAll("div", {"class":"result_message mg_cont"})
+
+
+
+        for (span,div, desc) in zip(span_soup, div_soup, desc_soup):
+
+            dd = div.findAll("a", {"class":"f_link_b"})
+
+
+
+            for (d,s) in zip(dd, desc):
+                print(d.get_text()) #title
+                print(d.attrs['href']) #link
+
+                title_list.append(d.get_text())
+                url_list.append(d.attrs['href'])
+                date_list.append(date)
+                query_list.append(query)
+                summary_list.append(s)
+
+        if end_soup:
+            end = end_soup[0].get_text()
+            print(end)
+            break
+        page += 1
+
+
+return summary_list, url_list, title_list, date_list, query_list
     
-    p_idx = urls_without_page[0].find('page')
-    print(p_idx)
-    
-    for (_url, _date, query) in zip(urls_without_page, s_dates, queries_for_mapping):
-        date = _date[:4] + "-" + _date[4:6] + "-" + _date[6:8]
-        
-        page = 1
-        
-        while True:
-            print("page : ",page)
-
-            url = _url[:p_idx] + str(page) + _url[p_idx+4:]
-
-            #print(url)
-            print("---"*10)
-
-            soup = request_soup(url)
-            
-            div_soup = soup.findAll("div", {"class" : "wrap_tit mg_tit"})
-            span_soup = soup.findAll("span", {"class": "f_nb date"})
-            desc_soup = soup.findAll("p", {"class":"f_eb desc"})
-
-            is_yester = 0
-            
-            for (span,div, desc) in zip(span_soup, div_soup, desc_soup):
-                time_info_dot = span.get_text()
-                t_idx = time_info_dot.find('|')
-                
-                time_info_dot = time_info_dot[:t_idx-1]
-                
-                time_info = time_info_dot.replace('.',"")
-                
-                #print(time_info, _date[:8])
-                
-                if not (len(time_info) < 8 or time_info == _date[:8]):
-                    is_yester = 1
-                    #print("yester day!!!")
-                    break
-                    
-                dd = div.findAll("a", {"class":"f_link_b"})
-                
-                for (d,s) in zip(dd, desc):
-                    #print(d.get_text()) #title
-                    #print(d.attrs['href']) #link
-
-                    title_list.append(d.get_text())
-                    url_list.append(d.attrs['href'])
-                    date_list.append(date)
-                    query_list.append(query)
-                    summary_list.append(s)
-            
-            if is_yester == 1:
-                break
-                            
-            
-                
-                
-            page += 1
-            
-    return summary_list, url_list, title_list, date_list, query_list
-   
-   
-   
    
  summary, url, title, date, query = news_crawler(['IoT'], 7)
    
