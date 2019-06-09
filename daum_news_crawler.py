@@ -27,12 +27,11 @@ def request_soup (url):
     return soup
     
 def news_crawler (queries, _ago = 30):
-
-
     # 날짜 리스트 만들기
     s_dates = []
     e_dates = []
 
+    
     now_date = datetime.now().date()
 
     for i in range(0, _ago):
@@ -45,7 +44,7 @@ def news_crawler (queries, _ago = 30):
 
     urls_without_page = []
     queries_for_mapping = []
-
+    dates_for_mapping = []
 
     # url list & 거기에 매칭되는 쿼리 리스트
     for query in queries:
@@ -63,8 +62,8 @@ def news_crawler (queries, _ago = 30):
 
             urls_without_page.append(url)
             queries_for_mapping.append(query)
+            dates_for_mapping.append(sd)
 
-    #print(queries_for_mapping)
 
 
     # 크롤링
@@ -75,63 +74,63 @@ def news_crawler (queries, _ago = 30):
     title_list = []
 
     p_idx = urls_without_page[0].find('page')
-    #print(p_idx)
 
 
 
 
 
-    for (_url, _date, query) in zip(urls_without_page, s_dates, queries_for_mapping):
+    for (_url, _date, query) in zip(urls_without_page, dates_for_mapping, queries_for_mapping):
         date = _date[:4] + "-" + _date[4:6] + "-" + _date[6:8]
-        #print(query)
+        
 
         page = 1
 
         while True:
-            print("page : ",page)
 
             url = _url[:p_idx] + str(page) + _url[p_idx+4:]
 
-            print(url)
-            #print("---"*10)
 
             soup = request_soup(url)
-            #print(soup.prettify())
 
             div_soup = soup.findAll("div", {"class" : "wrap_tit mg_tit"})
             span_soup = soup.findAll("span", {"class": "f_nb date"})
             desc_soup = soup.findAll("p", {"class":"f_eb desc"})
             end_soup = soup.findAll("div", {"class":"result_message mg_cont"})
 
+            nothing_soup = soup.findAll("strong", {"class":"tit"});
 
-
+            
             for (span,div, desc) in zip(span_soup, div_soup, desc_soup):
 
                 dd = div.findAll("a", {"class":"f_link_b"})
 
 
 
-                for (d,s) in zip(dd, desc):
-                    print(d.get_text()) #title
-                    print(d.attrs['href']) #link
+                for d in dd:
 
                     title_list.append(d.get_text())
                     url_list.append(d.attrs['href'])
                     date_list.append(date)
                     query_list.append(query)
-                    summary_list.append(s)
-
+                    summary_list.append(desc.get_text())
+            
             if end_soup:
                 end = end_soup[0].get_text()
-                print(end)
                 break
+            
+            if nothing_soup:
+                nothing = nothing_soup[0].get_text()
+                break
+
             page += 1
-
-
-    return summary_list, url_list, title_list, date_list, query_list
     
+
+    return date_list, query_list, title_list, summary_list, url_list
+
+
+
    
-summary, url, title, date, query = news_crawler(['IoT'], 7)
+date, query, title, summary, url = news_crawler(['IoT'], 7)
    
    
 data={
