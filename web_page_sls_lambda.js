@@ -121,7 +121,7 @@ app.get('/', (req, res, next) => {
                                 console.log(datas);
                                 if(err) return next(err);
 
-                                return res.render('main2', {datas: datas, total_page_num: total_page_num, queries: queries});
+                                return res.render('main', {datas: datas, total_page_num: total_page_num, queries: queries});
                                 });
                         });
 
@@ -145,7 +145,7 @@ app.use(function(err, req, res, next) {
 // catch 404 and forward to error handler
 // 라우팅이 안되는 에러들은 여기서 해결
 app.use(function(req, res, next) {
-  return res.status(404).json({"error":"Not Foud"});
+  return res.status(404).json({"error":"Not Found"});
 });
 
 
